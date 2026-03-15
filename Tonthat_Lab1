@@ -27,26 +27,11 @@ class Student:
 
     def to_dict(self):
         return {
-            "email_address": self.email_address, "firstName": self.firstname, "lastName": self.lastname, "Course_ID": self.course_id, "Grades": self.grades, "Marks": self.marks
+            "firstName": self.firstname, "lastName": self.lastname, "email_address": self.email_address, "Course_ID": self.course_id, "Grades": self.grades, "Marks": self.marks
         }
 
-    def add_new_student(self):
-        pass
-
-    def delete_new_student(self):
-        pass
 
     def check_my_grades(self):
-        pass
-
-    def update_student_record(self,firstname,lastname,email_address,course_id, grade, mark):
-        print("Updating Student " + firstname + " " +  lastname)
-        self.firstname = firstname
-        self.lastname = lastname
-        self.email_address = email_address
-        self.course_id = course_id
-        self.grades = grade
-        self.marks = mark
         pass
     
     def check_my_marks(self):
@@ -189,7 +174,7 @@ class CheckMyGrade:
         #creates csv for students if .csv for students does not exist
         self.create_csv('student',['first_name', 'last_name', 'email address', 'course_id', 'grade', 'marks'])
         #loads and reads students .csv line for line while adding to students list
-        with open ('students.csv', newline="") as studentscsv:
+        with open ('student.csv', newline="") as studentscsv:
             reader = csv.DictReader(studentscsv)
             for row in reader:
                 students.append(Student(row['first_name'], row['last_name'], row['email_address'], row['course_id'], row['grade'], row['mark']))
@@ -215,7 +200,7 @@ class CheckMyGrade:
         #creates csv for professors if .csv for professors does not exist
         self.create_csv('professor',['name', 'email_address', 'rank', 'course_id'])
         #loads and reads professors .csv line for line while adding to professors list
-        with open ('course.csv', newline="") as professorscsv:
+        with open ('professor.csv', newline="") as professorscsv:
             reader = csv.DictReader(professorscsv)
             for row in reader:
                 professors.append(Professor(row['name'], row['email_address'], row['rank'], row['course_id']))
@@ -228,7 +213,7 @@ class CheckMyGrade:
         #creates csv for logins if .csv for logins does not exist
         self.create_csv('login',['email_address', 'password'])
         #loads and reads login .csv line for line while adding to logins list
-        with open ('course.csv', newline="") as loginscsv:
+        with open ('login.csv', newline="") as loginscsv:
             reader = csv.DictReader(loginscsv)
             for row in reader:
                 #LoginUser only initialized in main; no need to initialize class now
@@ -263,6 +248,29 @@ class CheckMyGrade:
             writer.writeheader()
             for login in self.logins:
                 writer.writerow(login)
+
+    def existing_student(self, email_address):
+        semail_address = email_address.strip().lower()
+        for student in self.students:
+            if student.email_address == semail_address:
+                return True
+        return False
+
+    def existing_course(self, course_id):
+        course_id = course_id.strip().lower()
+        for course in self.courses:
+            if course.course_id == course_id:
+                return True
+        return False
+    
+    def existing_professor(self, pemail_address):
+        pemail_address = pemail_address.strip().lower()
+        for professor in self.professors:
+            if professor.email_address == pemail_address:
+                return True
+        return False
+
+    
 
 def mainmenu():
     while True:
