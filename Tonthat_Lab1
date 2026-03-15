@@ -70,15 +70,6 @@ class LinkedList:
     def check_head(self):
         return True if self.head is not None else False
 
-    def linked_size(self):
-        """ Get the size of linked list"""
-        count=0
-        c1=self.head
-        while c1:
-            c1=c1.next
-            count=count+1
-        print("The linked list size is",count)
-
     def delete_node(self,data):
         """ delete the linked linked list node"""
         flag=False
@@ -136,43 +127,11 @@ class LinkedList:
             print("No data element found in ll")
         pass
 
-    def delete_at_index(self,data):
-        """ delete the linked linked list node"""
-        flag = False
-
-        if self.check_head():
-            if data < 0: #check if index is valid
-                print("Error: invalid index for this linked list")
-                return
-            if data == 0: #check for single node list
-                self.delete_first_node()
-                flag = True
-            else:
-                c1 = self.head #previous Node
-                c2 = self.head.next #current Node
-                index = 1 #temp index
-                
-                while c2 is not None:
-                    if index == data: 
-                        c1.next = c2.next #delete Node by overwriting address
-                        flag = True
-                        break
-                    c1 = c2 
-                    c2 = c2.next 
-                    index = index+1 #interates through index during while loop to find Node at index
-        else:
-            print("List is empty")
-
-        if not flag:
-            print("Error: Index out of range of linkedlist")
-        
-        pass
-
 class Student:
-    def __init__(self,firstname,lastname,email_address,course_id, grade, marks):
+    def __init__(self,email_address,firstname,lastname,course_id, grade, marks):
+        self.email_address = email_address
         self.firstname = firstname
         self.lastname = lastname
-        self.email_address = email_address
         self.course_id = course_id
         self.grades = grade
         self.marks = int(marks)
@@ -180,12 +139,15 @@ class Student:
     def display_records(self): #displays student information
         print("\nStudent Information")
         print("----------------------")
-        print("First Name: " + self.firstname)
-        print("Last Name: " + self.lastname)
-        print("Email: " + self.email_address)
-        print("Course: " + self.course_id)
-        print("Grades: " + self.grades)
-        print("Marks: " + self.marks)
+        print("Email: ", self.email_address)
+        print("First Name: ", self.firstname)
+        print("Last Name: ", self.lastname)
+        print("Course: ", self.course_id)
+        print("Grades: ", self.grades)
+        print("Marks: ", self.marks)
+
+    def __str__(self):
+        return f"{self.email_address} | {self.firstname} | {self.lastname} | {self.course_id} | {self.grades} | {self.marks}"
 
 class Course:
     def __init__(self,course_id, course_name, credits):
@@ -200,21 +162,13 @@ class Course:
         print("Course Name: " + self.course_name)
         print("Credits: " + self.credits)
 
-    def to_dict(self):
-        return {
-            "Course_Id": self.course_id, "Course_Name": self.course_name, "Credits": self.credits
-        }
-
-    def add_new_course(self):
-        pass
-
-    def delete_new_course(self):
-        pass
+    def __str__(self):
+        return f"{self.course_id} | {self.course_name} | {self.credits}"
 
 class Professor:
-    def __init__(self, name, email_address, rank, course_id):
-        self.name = name
+    def __init__(self, email_address, name, rank, course_id):
         self.email_address = email_address
+        self.name = name
         self.rank = rank
         self.course_id = course_id
 
@@ -227,10 +181,8 @@ class Professor:
         print("Course ID: " + self.course_id)
         pass
 
-    def to_dict(self):
-        return {
-            "Professor_Email": self.email_address, "Professor_Name": self.name, "Rank": self.rank, "Course_ID": self.course_id
-        }
+    def __str__(self):
+        return f"{self.email_address} | {self.name} | {self.rank} | {self.course_id}"
 
     def add_new_professor(self):
         pass
@@ -259,10 +211,8 @@ class Grades:
         print("Marks: " + self.marks)
         pass
 
-    def to_dict(self):
-        return {
-            "Grade_ID": self.grade_id, "Grade": self.grade, "Marks": self.marks,
-        }
+    def __str__(self):
+        return f"{self.grade_id} | {self.grade} | {self.marks}"
 
 
     def add_grade(self):
@@ -302,10 +252,10 @@ class LoginUser:
 #main admin app to manage all records
 class CheckMyGrade:
     def __init__(self):
-        self.students = []
-        self.professors = []
-        self.courses = []
-        self.logins = []
+        self.students = LinkedList()
+        self.professors = LinkedList()
+        self.courses = LinkedList()
+        self.logins = LinkedList()
 
     def create_csv(self, filename, headers):
         if not os.path.exists(filename):
@@ -318,46 +268,43 @@ class CheckMyGrade:
 
     def load_students(self):
         #clear students list
-        students = []
+        self.students = LinkedList()
         #creates csv for students if .csv for students does not exist
-        self.create_csv('student',['first_name', 'last_name', 'email address', 'course_id', 'grade', 'marks'])
+        self.create_csv('student.csv',['email address','first_name', 'last_name', 'course_id', 'grade', 'marks'])
         #loads and reads students .csv line for line while adding to students list
         with open ('student.csv', newline="") as studentscsv:
             reader = csv.DictReader(studentscsv)
             for row in reader:
-                students.append(Student(row['first_name'], row['last_name'], row['email_address'], row['course_id'], row['grade'], row['mark']))
-        
-        return students
+                student = Student(row['first_name'], row['last_name'], row['email_address'], row['course_id'], row['grade'], row['mark'])
+                self.students.add_last(student)
     
     def load_courses(self):
         #clear courses list
-        courses = []
+        self.courses = LinkedList()
         #creates csv for courses if .csv for courses does not exist
         self.create_csv('course',['course_id', 'course_name', 'credits'])
         #loads and reads courses .csv line for line while adding to courses list
         with open ('course.csv', newline="") as coursescsv:
             reader = csv.DictReader(coursescsv)
             for row in reader:
-                courses.append(Course(row['course_id'], row['course_name'], row['credits']))
-        
-        return courses
+                course = Course(row['course_id'], row['course_name'], row['credits'])
+                self.courses.add_last(course)
 
     def load_professors(self):
         #clear professors list
-        professors = []
+        self.professors = LinkedList()
         #creates csv for professors if .csv for professors does not exist
         self.create_csv('professor',['name', 'email_address', 'rank', 'course_id'])
         #loads and reads professors .csv line for line while adding to professors list
         with open ('professor.csv', newline="") as professorscsv:
             reader = csv.DictReader(professorscsv)
             for row in reader:
-                professors.append(Professor(row['name'], row['email_address'], row['rank'], row['course_id']))
-        
-        return professors
+                professor = Professor(row['email_address'], row['name'], row['rank'], row['course_id'])
+                self.professors.add_last(professor)
     
     def load_logins(self):
         #clear logins list
-        logins = []
+        self.logins = LinkedList()
         #creates csv for logins if .csv for logins does not exist
         self.create_csv('login',['email_address', 'password'])
         #loads and reads login .csv line for line while adding to logins list
@@ -365,57 +312,89 @@ class CheckMyGrade:
             reader = csv.DictReader(loginscsv)
             for row in reader:
                 #LoginUser only initialized in main; no need to initialize class now
-                logins.append(row)
-        
-        return logins
+                user = LoginUser(row["email_address"], row["password"])
+                self.logins.add_last(user)
     
     def save_student(self):
         with open ('students.csv', 'w', newline="") as studentscsv:
-            writer = csv.DictReader(studentscsv, fieldnames = ['first_name', 'last_name', 'email_address', 'course_id', 'grade', 'mark'])
+            writer = csv.DictWriter(studentscsv, fieldnames = ['email_address', 'first_name', 'last_name', 'course_id', 'grade', 'mark'])
             writer.writeheader()
-            for student in self.students:
-                writer.writerow(student.to_dict())
+
+            c1 = self.students.head
+            while c1 is not None:
+                student = c1.data
+                writer.writerow({
+                    'email_address': student.email_address,
+                    'first_name': student.firstname,
+                    'last_name': student.lastname,
+                    'course_id': student.course_id,
+                    'grade': student.grades,
+                    'marks': student.marks
+                })
+                c1 = c1.next
     
     def save_course(self):
         with open ('course.csv', 'w', newline="") as coursescsv:
-            writer = csv.DictReader(coursescsv, fieldnames = ['course_id', 'course_name', 'credits'])
+            writer = csv.DictWriter(coursescsv, fieldnames = ['course_id', 'course_name', 'credits'])
             writer.writeheader()
-            for course in self.courses:
-                writer.writerow(course.to_dict())
+            
+            c1 = self.courses.head
+            while c1 is not None:
+                course = c1.data
+                writer.writerow({
+                    'course_id': course.course_id,
+                    'course_name': course.course_name,
+                    'credits': course.credits,
+                })
+                c1 = c1.next
 
     def save_professor(self):
         with open ('professor.csv', 'w', newline = "") as professorscsv:
-            writer = csv.DictReader(professorscsv, fieldnames = ['name', 'email_address', 'rank', 'course_id'])
+            writer = csv.DictWriter(professorscsv, fieldnames = ['email_address', 'name', 'rank', 'course_id'])
             writer.writeheader()
-            for professor in self.professors:
-                writer.writerow(professor.to_dict())
-
-    def save_logins(self):
-        with open ('login.csv', 'w', newline = "") as loginscsv:
-            writer = csv.DictReader(loginscsv, fieldnames = ['user_id', 'password', 'role'])
-            writer.writeheader()
-            for login in self.logins:
-                writer.writerow(login)
+            
+            c1 = self.professors.head
+            while c1 is not None:
+                professor = c1.data
+                writer.writerow({
+                    'email_address': professor.email_address,
+                    'name': professor.name,
+                    'rank': professor.rank,
+                    'course_id': professor.course_id
+                })
+                c1 = c1.next
 
     def existing_student(self, email_address):
-        semail_address = email_address.strip().lower()
-        for student in self.students:
-            if student.email_address == semail_address:
+        StudentEmail = email_address.strip().lower()
+        c1 = self.students.head
+
+        while c1 is not None:
+            student = c1.data
+            if student.email_address == StudentEmail:
                 return True
+            c1 = c1.next
         return False
 
     def existing_course(self, course_id):
         course_id = course_id.strip().lower()
-        for course in self.courses:
+        c1 = self.courses.head
+
+        while c1 is not None:
+            course = c1.data
             if course.course_id == course_id:
                 return True
+            c1 = c1.next
         return False
     
-    def existing_professor(self, pemail_address):
-        pemail_address = pemail_address.strip().lower()
-        for professor in self.professors:
-            if professor.email_address == pemail_address:
+    def existing_professor(self, email_address):
+        ProfEmail = email_address.strip().lower()
+        c1 = self.professors.head
+
+        while c1 is not None:
+            professor = c1.data
+            if professor.email_address == ProfEmail:
                 return True
+            c1 = c1.next
         return False
 
     
