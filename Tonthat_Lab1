@@ -184,18 +184,6 @@ class Professor:
     def __str__(self):
         return f"{self.email_address} | {self.name} | {self.rank} | {self.course_id}"
 
-    def add_new_professor(self):
-        pass
-
-    def delete_professor(self):
-        pass
-
-    def modify_professor_details(self):
-        pass
-    
-    def show_course_details_by_professor(self):
-        pass
-
 class Grades:
     def __init__(self, grade_id, grade, marks):
         self.grade_id = grade_id
@@ -410,6 +398,7 @@ class CheckMyGrade:
         self.students.add_last(student)
         self.save_student()
         print(f"Student ID {email_address} successfully added.")
+        return True
 
     def add_new_course(self, course_id, course_name, credits):
         if course_id == "":
@@ -425,6 +414,27 @@ class CheckMyGrade:
         self.courses.add_last(course)
         self.save_course()
         print(f"Course ID {course_id} successfully added.")
+        return True
+
+    def add_new_professor(self, email_address, name, rank, course_id):
+        if email_address == "":
+            print("Error. Email cannot be null")
+            return False
+        
+        if course_id == "":
+            print("Error. Course ID cannot be null")
+            return False
+
+        elif self.existing_professor(email_address): #if prof email already used, throw error and return to retry
+            print("Error. Professor already exists. Please try another email.")
+            return 
+        
+        #else, add new Professor Class, add new course to end of linked list, and update csv
+        professor = Professor(email_address.strip().lower(), name, rank, course_id.strip().upper())
+        self.professors.add_last(professor)
+        self.save_professor()
+        print(f"Professor ID {email_address} successfully added.")
+        return True
 
     def display_all_students(self):
         if not self.students.check_head(): #if head is empty, throw error and return to retry.
@@ -444,6 +454,16 @@ class CheckMyGrade:
         c1 = self.courses.head
         while c1 is not None:
             c1.data.display_courses()
+            c1 = c1.next
+
+    def display_all_professors(self):
+        if not self.professors.check_head(): #if head is empty, throw error and return to retry.
+            print("Error. No professors found.")
+            return
+        #else, interate through linked list and display all students
+        c1 = self.professors.head
+        while c1 is not None:
+            c1.data.professor_details()
             c1 = c1.next
 
     def delete_student(self, email_address): 
@@ -502,6 +522,34 @@ class CheckMyGrade:
         print("Error. Course not found.")
         return False
 
+    def delete_professor(self, email_address): 
+        ProfEmail = email_address.strip().lower() #normalize email address for easy searching
+
+        if not self.professors.check_head(): #check if professor list is empty.
+            print("Error. No professors found in list")    
+            return False
+        
+        elif self.professors.head.data.email_address == ProfEmail: #check if professor ll first node matches. If so, delete head node.
+            self.professors.delete_first_node()
+            self.save_professor()
+            print("Professor deleted successfully")
+            return True
+
+        previous = self.professors.head
+        current = self.professors.head.next
+
+        while current is not None: #else, iterate through linked list and check for matching professor.  If so, delete node and save to .csv file.
+            if current.data.email_address == ProfEmail:
+                previous.next = current.next
+                self.save_professor()
+                print("Professor deleted successfully")
+                return True
+            previous = current
+            current = current.next
+
+        print("Error. Professor not found.")
+        return False
+
     def update_student_record(self, email_address, firstname = None, lastname = None, course_id = None, grade = None, marks = None):
         StudentEmail = email_address.strip().lower()
         current = self.students.head
@@ -529,12 +577,12 @@ class CheckMyGrade:
         return False
     
     def modify_course(self, course_id, course_name = None, credits = None):
-        CourseToMod = course_id.strip().lower()
+        CourseToMod = course_id.strip().upper()
         current = self.courses.head
 
         while current is not None:
             course = current.data
-            if course.course_id == course_id:
+            if course.course_id == CourseToMod:
                 if course_name is not None:
                     course.course_name = course_name
                 if credits is not None:
@@ -548,7 +596,27 @@ class CheckMyGrade:
         print("Error: Course not found. Please try again")
         return False
     
+    def modify_professor(self, email_address, name = None, rank = None, course_id = None):
+        ProfToMod = email_address.strip().lower()
+        current = self.professors.head
 
+        while current is not None:
+            professor = current.data
+            if professor.email_address == ProfToMod:
+                if name is not None:
+                    professor.name = name
+                if rank is not None:
+                    professor.rank = rank
+                if course_id is not None:
+                    professor.course_id = course_id.strip().upper()
+
+                self.save_professor()
+                print(f"Professor ID {ProfToMod} has been successfully updated")
+                return True
+            current = current.next
+
+        print("Error: Professor not found. Please try again")
+        return False
 
 
 
