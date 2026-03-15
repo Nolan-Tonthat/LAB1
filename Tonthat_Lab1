@@ -380,7 +380,7 @@ class CheckMyGrade:
         return False
 
     def existing_course(self, course_id):
-        course_id = course_id.strip().lower()
+        course_id = course_id.strip().upper()
         c1 = self.courses.head
 
         while c1 is not None: #iterate through LL --> return true if node's course_id matches passed variable email

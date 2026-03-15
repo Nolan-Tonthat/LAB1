@@ -13,6 +13,14 @@ class TestStudents(unittest.TestCase):
         self.app.delete_student("b@email.com")
         self.assertFalse(self.app.existing_student("b@email.com"))
 
+    def test_add_course(self):
+        self.app.add_new_course("DATA200", "Programming", 3)
+        self.assertTrue(self.app.existing_course("DATA200"))
+
+    def test_delete_course(self):
+        self.app.add_new_course("DATA201", "Math for DI", 2)
+        self.app.delete_course("DATA201")
+        self.assertFalse(self.app.existing_course("DATA201"))
 
 if __name__ == "__main__":
     unittest.main()
