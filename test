@@ -22,5 +22,49 @@ class TestStudents(unittest.TestCase):
         self.app.delete_course("DATA201")
         self.assertFalse(self.app.existing_course("DATA201"))
 
+class TestProfessors(unittest.TestCase):
+
+    def setUp(self):
+        self.app = CheckMyGrade()
+        self.app.professors.head = None
+
+    def test_add_professor(self):
+        result = self.app.add_new_professor("prof@email.com", "John Smith", "Senior Professor", "DATA200")
+        self.assertTrue(result)
+        self.assertTrue(self.app.exisiting_professor("prof@email.com"))
+
+    def test_add_empty_email_professor(self):
+        result = self.app.add_new_professor("", "John Smith", "Senior Professor", "DATA200")
+        self.assertFalse(result)
+
+    def test_add_empty_course_professor(self):
+        result = self.app.add_new_professor("prof@email.com", "John Smith", "Senior Professor", "")
+        self.assertFalse(result)
+
+    def test_add_professor(self):
+        self.app.add_new_professor("prof@email.com", "John Smith", "Senior Professor", "DATA200")
+        result = self.app.add_new_professor("prof@email.com", "Betty Smith", "Professor", "DATA201")
+        self.assertIsNone(result)
+
+    def test_delete_professor(self):
+        self.app.add_new_professor("delete@email.com", "Delete This", "Will Not Exist After", "DATA800")
+        result = self.app.delete_professor("delete@email.com")
+        self.assertTrue(result)
+        self.assertFalse(self.app.existing_professor("delete@email.com"))
+
+    def test_delete_professor_not_found(self):
+        result = self.app.delete_professor("notfound@email.com")
+        self.assertFalse(result)
+
+    def test_modify_professor(self):
+        self.app.add_new_professor("greenbean@email.com", "Irish Spring Green Green", "Assistant Professor", "DATA301")
+        result = self.app.modify_professor("greenbean@email.com", "Green Giant")
+        
+        current = self.app.professors.head
+        while current is not None:
+            if current.data.email_address == "greenbean@email.com":
+                self.assertEqual(current.data.name, "Green Giant")
+                break
+            current = current.next
 if __name__ == "__main__":
     unittest.main()
