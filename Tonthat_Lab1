@@ -4,15 +4,178 @@ import os
 
 login_db={'sam@xyzemail.com':["welcome1","admin","Sam","Gilroy"],'peter@useremail.com':["welcome2","student","Peter","SanJose"]}
 
+#node class for LinkedList implementation
+class Node:
+    def __init__ (self, data):
+        self.data = data
+        self.next = None
+
+#using partial LinkedList implementation from HW5
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    # Add a node at the begining
+    def add_first(self, data):
+        """ Add First Node"""
+        if self.head is None:
+            self.head=Node(data)
+        else:
+            #print("self.head address at the begining",self.head)
+            c1=self.head
+            #print("c1 address after self.head is assigned to c1",c1)
+            self.head=Node(data)
+            #print("self.head address after the new node assignment",self.head)
+            self.head.next=c1
+            #print("self.head address at the after next assignment",self.head.next)
+
+    ### Insert at the end
+    def add_last(self, data):
+        """ Add node at last position"""
+        if self.head is None:
+            self.head=Node(data) #if list (head) is empty, create new Node class.
+        else:
+            c1=self.head #temp variable assigned to first Node.
+            while c1.next is not None: #iterates through list until last Node.
+                c1=c1.next  
+            c1.next=Node(data) #adds new Node class to end of list
+
+    def add_at_index(self, data,newdata):
+        """Add node at a specifiec newdata"""
+        flag=False
+        if self.check_head(): #check to make sure list is not empty.
+            c1=self.head
+            while c1 is not None: 
+                if c1.data == data: #if Node matches passed Node --> create new Node with passed value.  
+                  nn=Node(newdata) 
+                  nn.next=c1.next #move original Node to next node.
+                  c1.next=nn
+                  flag=True
+
+                c1=c1.next 
+        else:
+            print("List is empty") #throws error if list is empty.
+            
+        if not flag:
+            print("No data element found in ll") #flag returns false if index is not found
+
+    def print_linked_list(self):
+        """ print the  linked list"""
+        if self.check_head():
+            c1=self.head
+            while c1 is not None:
+                print(c1.data)
+                c1=c1.next
+
+    def check_head(self):
+        return True if self.head is not None else False
+
+    def linked_size(self):
+        """ Get the size of linked list"""
+        count=0
+        c1=self.head
+        while c1:
+            c1=c1.next
+            count=count+1
+        print("The linked list size is",count)
+
+    def delete_node(self,data):
+        """ delete the linked linked list node"""
+        flag=False
+        if self.check_head(): #deletes head if matching
+            if self.head.data == data:
+                self.delete_first_node()
+            else: #iterates through linked list nodes to find matching node to delete
+                c1 = self.head #previous Node
+                c2 = self.head.next #current Node
+                while c2.next is not None: #iterates through list
+                    if c2.data == data:
+                        c1.next = c2.next #'removes' Node by overwriting address
+                        flag=True
+                    c1=c2
+                    c2=c2.next
+        else:
+            print("List is empty")
+            
+        if not flag:
+            print("No data element found in ll")
+        pass
+
+    def delete_first_node(self):
+        """ delete the linked linked list first node"""
+        flag = False
+        if self.check_head():
+            self.head = self.head.next #'removes' first Node by overwriting address with next Node's address
+            flag = True
+        else:
+            print("List is empty")
+        
+        if not flag:
+            print("No data element found in ll")
+        pass
+      
+    def delete_last_node(self):
+        """ delete the linked linked list last node"""
+        flag = False
+        if self.check_head():
+            if self.head.next is None:
+                self.delete_first_node() #if list is only one node, delete first node.
+                flag = True
+                return
+            else:
+                c1 = self.head #previous Node
+                c2 = self.head.next #current Node
+                while c2.next is not None: #iterates through list
+                    c1 = c1.next #rewrites previous Node to current Node
+                    c2 = c2.next #rewrites current Node to next Node
+                c1.next = None #at end of list, set last Node
+                flag = True
+        else:
+            print("List is empty")
+        if not flag:
+            print("No data element found in ll")
+        pass
+
+    def delete_at_index(self,data):
+        """ delete the linked linked list node"""
+        flag = False
+
+        if self.check_head():
+            if data < 0: #check if index is valid
+                print("Error: invalid index for this linked list")
+                return
+            if data == 0: #check for single node list
+                self.delete_first_node()
+                flag = True
+            else:
+                c1 = self.head #previous Node
+                c2 = self.head.next #current Node
+                index = 1 #temp index
+                
+                while c2 is not None:
+                    if index == data: 
+                        c1.next = c2.next #delete Node by overwriting address
+                        flag = True
+                        break
+                    c1 = c2 
+                    c2 = c2.next 
+                    index = index+1 #interates through index during while loop to find Node at index
+        else:
+            print("List is empty")
+
+        if not flag:
+            print("Error: Index out of range of linkedlist")
+        
+        pass
 
 class Student:
-    def __init__(self,firstname,lastname,email_address,course_id, grade, mark):
+    def __init__(self,firstname,lastname,email_address,course_id, grade, marks):
         self.firstname = firstname
         self.lastname = lastname
         self.email_address = email_address
         self.course_id = course_id
         self.grades = grade
-        self.marks = mark
+        self.marks = int(marks)
     
     def display_records(self): #displays student information
         print("\nStudent Information")
@@ -23,20 +186,6 @@ class Student:
         print("Course: " + self.course_id)
         print("Grades: " + self.grades)
         print("Marks: " + self.marks)
-        pass
-
-    def to_dict(self):
-        return {
-            "firstName": self.firstname, "lastName": self.lastname, "email_address": self.email_address, "Course_ID": self.course_id, "Grades": self.grades, "Marks": self.marks
-        }
-
-
-    def check_my_grades(self):
-        pass
-    
-    def check_my_marks(self):
-        pass
-
 
 class Course:
     def __init__(self,course_id, course_name, credits):
@@ -50,7 +199,6 @@ class Course:
         print("Course ID: " + self.course_id)
         print("Course Name: " + self.course_name)
         print("Credits: " + self.credits)
-        pass
 
     def to_dict(self):
         return {
