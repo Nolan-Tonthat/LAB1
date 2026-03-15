@@ -96,7 +96,7 @@ class Professor:
 
     def to_dict(self):
         return {
-            "Professor_Email": self.email_address, "Professor_Name": self.name, "Professor_Rank": self.rank, "Course_ID": self.course_id
+            "Professor_Email": self.email_address, "Professor_Name": self.name, "Rank": self.rank, "Course_ID": self.course_id
         }
 
     def add_new_professor(self):
@@ -188,7 +188,6 @@ class CheckMyGrade:
         students = []
         #creates csv for students if .csv for students does not exist
         self.create_csv('student',['first_name', 'last_name', 'email address', 'course_id', 'grade', 'marks'])
-        
         #loads and reads students .csv line for line while adding to students list
         with open ('students.csv', newline="") as studentscsv:
             reader = csv.DictReader(studentscsv)
@@ -200,9 +199,9 @@ class CheckMyGrade:
     def load_courses(self):
         #clear courses list
         courses = []
-        #creates csv for courses if .csv for students does not exist
+        #creates csv for courses if .csv for courses does not exist
         self.create_csv('course',['course_id', 'course_name', 'credits'])
-        #loads and reads students .csv line for line while adding to students list
+        #loads and reads courses .csv line for line while adding to courses list
         with open ('course.csv', newline="") as coursescsv:
             reader = csv.DictReader(coursescsv)
             for row in reader:
@@ -211,17 +210,59 @@ class CheckMyGrade:
         return courses
 
     def load_professors(self):
-        #clear courses list
+        #clear professors list
         professors = []
-        #creates csv for courses if .csv for students does not exist
+        #creates csv for professors if .csv for professors does not exist
         self.create_csv('professor',['name', 'email_address', 'rank', 'course_id'])
-        #loads and reads students .csv line for line while adding to students list
+        #loads and reads professors .csv line for line while adding to professors list
         with open ('course.csv', newline="") as professorscsv:
             reader = csv.DictReader(professorscsv)
             for row in reader:
                 professors.append(Professor(row['name'], row['email_address'], row['rank'], row['course_id']))
         
         return professors
+    
+    def load_logins(self):
+        #clear logins list
+        logins = []
+        #creates csv for logins if .csv for logins does not exist
+        self.create_csv('login',['email_address', 'password'])
+        #loads and reads login .csv line for line while adding to logins list
+        with open ('course.csv', newline="") as loginscsv:
+            reader = csv.DictReader(loginscsv)
+            for row in reader:
+                #LoginUser only initialized in main; no need to initialize class now
+                logins.append(row)
+        
+        return logins
+    
+    def save_student(self):
+        with open ('students.csv', 'w', newline="") as studentscsv:
+            writer = csv.DictReader(studentscsv, fieldnames = ['first_name', 'last_name', 'email_address', 'course_id', 'grade', 'mark'])
+            writer.writeheader()
+            for student in self.students:
+                writer.writerow(student.to_dict())
+    
+    def save_course(self):
+        with open ('course.csv', 'w', newline="") as coursescsv:
+            writer = csv.DictReader(coursescsv, fieldnames = ['course_id', 'course_name', 'credits'])
+            writer.writeheader()
+            for course in self.courses:
+                writer.writerow(course.to_dict())
+
+    def save_professor(self):
+        with open ('professor.csv', 'w', newline = "") as professorscsv:
+            writer = csv.DictReader(professorscsv, fieldnames = ['name', 'email_address', 'rank', 'course_id'])
+            writer.writeheader()
+            for professor in self.professors:
+                writer.writerow(professor.to_dict())
+
+    def save_logins(self):
+        with open ('login.csv', 'w', newline = "") as loginscsv:
+            writer = csv.DictReader(loginscsv, fieldnames = ['user_id', 'password', 'role'])
+            writer.writeheader()
+            for login in self.logins:
+                writer.writerow(login)
 
 def mainmenu():
     while True:
