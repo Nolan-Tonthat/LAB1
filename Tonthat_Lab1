@@ -411,6 +411,21 @@ class CheckMyGrade:
         self.save_student()
         print(f"Student ID {email_address} successfully added.")
 
+    def add_new_course(self, course_id, course_name, credits):
+        if course_id == "":
+            print("Error. Course ID cannot be null")
+            return False
+        
+        if self.existing_course(course_id): #if course ID already used, throw error and return to retry
+            print ("Error. Course already exists")
+            return
+        
+        #else, add new Course Class, add new course to end of linked list, and update csv
+        course = Course(course_id, course_name, credits)
+        self.courses.add_last(course)
+        self.save_course()
+        print(f"Course ID {course_id} successfully added.")
+
     def display_all_students(self):
         if not self.students.check_head(): #if head is empty, throw error and return to retry.
             print("Error. No students found.")
@@ -419,6 +434,16 @@ class CheckMyGrade:
         c1 = self.students.head
         while c1 is not None:
             c1.data.display_records()
+            c1 = c1.next
+    
+    def display_all_courses(self):
+        if not self.courses.check_head(): #if head is empty, throw error and return to retry.
+            print("Error. No courses found.")
+            return
+        #else, interate through linked list and display all students
+        c1 = self.courses.head
+        while c1 is not None:
+            c1.data.display_courses()
             c1 = c1.next
 
     def delete_student(self, email_address): 
@@ -449,6 +474,34 @@ class CheckMyGrade:
         print("Error. Student not found.")
         return False
     
+    def delete_course(self, course_id): 
+        CourseToDelete = course_id.strip().upper() #normalize course id for easy searching
+
+        if not self.courses.check_head(): #check if courses list is empty.
+            print("Error. No courses found in list")    
+            return False
+        
+        elif self.courses.head.data.course_id == CourseToDelete: #check if courses ll first node matches. If so, delete head node.
+            self.courses.delete_first_node()
+            self.save_course()
+            print("Course deleted successfully")
+            return True
+
+        previous = self.courses.head
+        current = self.courses.head.next
+
+        while current is not None: #else, iterate through linked list and check for matching student.  If so, delete node and save to .csv file.
+            if current.data.course_id == CourseToDelete:
+                previous.next = current.next
+                self.save_course()
+                print("Course deleted successfully")
+                return True
+            previous = current
+            current = current.next
+
+        print("Error. Course not found.")
+        return False
+
     def update_student_record(self, email_address, firstname = None, lastname = None, course_id = None, grade = None, marks = None):
         StudentEmail = email_address.strip().lower()
         current = self.students.head
@@ -475,6 +528,27 @@ class CheckMyGrade:
         print("Error: Student not found. Please try again")
         return False
     
+    def modify_course(self, course_id, course_name = None, credits = None):
+        CourseToMod = course_id.strip().lower()
+        current = self.courses.head
+
+        while current is not None:
+            course = current.data
+            if course.course_id == course_id:
+                if course_name is not None:
+                    course.course_name = course_name
+                if credits is not None:
+                    course.credits = credits
+
+                self.save_course()
+                print(f"Course ID {CourseToMod} has been successfully updated")
+                return True
+            current = current.next
+
+        print("Error: Course not found. Please try again")
+        return False
     
+
+
 
 
