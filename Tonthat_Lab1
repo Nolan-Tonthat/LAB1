@@ -1,6 +1,6 @@
 import csv
-import shutil
 import os
+import unittest
 
 login_db={'sam@xyzemail.com':["welcome1","admin","Sam","Gilroy"],'peter@useremail.com':["welcome2","student","Peter","SanJose"]}
 
@@ -134,7 +134,7 @@ class Student:
         self.lastname = lastname
         self.course_id = course_id
         self.grades = grade
-        self.marks = int(marks)
+        self.marks = marks
     
     def display_records(self): #displays student information
         print("\nStudent Information")
@@ -318,7 +318,7 @@ class CheckMyGrade:
     def save_student(self):
         #open csv and begin writing new rows
         with open ('student.csv', 'w', newline="") as studentscsv:
-            writer = csv.DictWriter(studentscsv, fieldnames = ['email_address', 'first_name', 'last_name', 'course_id', 'grade', 'mark'])
+            writer = csv.DictWriter(studentscsv, fieldnames = ['email_address', 'first_name', 'last_name', 'course_id', 'grade', 'marks'])
             writer.writeheader()
 
             c1 = self.students.head
@@ -402,33 +402,33 @@ class CheckMyGrade:
         return False
 
     def add_new_student(self, email_address, firstname, lastname, course_id, grade, marks):
-        if self.existing_student(email_address):
+        if self.existing_student(email_address): #if student email already used, throw error and return to retry
             print ("Student already exists")
             return
-
+        #else, add new Student Class, add student to end of linked list, and update csv
         student = Student(email_address, firstname, lastname, course_id, grade, marks)
         self.students.add_last(student)
         self.save_student()
         print(f"Student ID {email_address} successfully added.")
 
     def display_all_students(self):
-        if not self.students.check_head():
+        if not self.students.check_head(): #if head is empty, throw error and return to retry.
             print("Error. No students found.")
             return
-
+        #else, interate through linked list and display all students
         c1 = self.students.head
         while c1 is not None:
             c1.data.display_records()
             c1 = c1.next
 
-    def delete_student(self, email_address):
-        email_address = email_address.strip().lower()
+    def delete_student(self, email_address): 
+        email_address = email_address.strip().lower() #normalize email address for easy searching
 
-        if not self.students.check_head():
+        if not self.students.check_head(): #check if students list is empty.
             print("Error. No students found in list")    
             return False
         
-        elif self.students.head.data.email_address == email_address:
+        elif self.students.head.data.email_address == email_address: #check if students ll first node matches. If so, delete head node.
             self.students.delete_first_node()
             self.save_student()
             print("Student deleted successfully")
@@ -437,7 +437,7 @@ class CheckMyGrade:
         previous = self.students.head
         current = self.students.head.next
 
-        while current is not None:
+        while current is not None: #else, iterate through linked list and check for matching student.  If so, delete node and save to .csv file.
             if current.data.email_address == email_address:
                 previous.next = current.next
                 self.save_student()

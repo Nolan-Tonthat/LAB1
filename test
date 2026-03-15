@@ -1,7 +1,3 @@
-import unittest
-from Tonthat_Lab1 import CheckMyGrade
-
-
 class TestStudents(unittest.TestCase):
 
     def setUp(self):
