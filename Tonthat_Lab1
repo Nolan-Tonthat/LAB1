@@ -128,12 +128,12 @@ class LinkedList:
         pass
 
 class Student:
-    def __init__(self,email_address,firstname,lastname,course_id, grade, marks):
+    def __init__(self,email_address,firstname,lastname,course_id, grades, marks):
         self.email_address = email_address
         self.firstname = firstname
         self.lastname = lastname
         self.course_id = course_id
-        self.grades = grade
+        self.grades = grades
         self.marks = marks
     
     def display_records(self): #displays student information
@@ -270,12 +270,12 @@ class CheckMyGrade:
         #clear students list
         self.students = LinkedList()
         #creates csv for students if .csv for students does not exist
-        self.create_csv('student.csv',['email address','first_name', 'last_name', 'course_id', 'grade', 'marks'])
+        self.create_csv('student.csv',['email address','first_name', 'last_name', 'course_id', 'grades', 'marks'])
         #loads and reads students .csv line for line while adding to students list
         with open ('student.csv', newline="") as studentscsv:
             reader = csv.DictReader(studentscsv)
             for row in reader:
-                student = Student(row['email_address'], row['first_name'], row['last_name'], row['course_id'], row['grade'], row['mark'])
+                student = Student(row['email_address'], row['first_name'], row['last_name'], row['course_id'], row['grades'], row['marks'])
                 self.students.add_last(student)
     
     def load_courses(self):
@@ -448,5 +448,33 @@ class CheckMyGrade:
 
         print("Error. Student not found.")
         return False
+    
+    def update_student_record(self, email_address, firstname = None, lastname = None, course_id = None, grade = None, marks = None):
+        StudentEmail = email_address.strip().lower()
+        current = self.students.head
+
+        while current is not None:
+            student = current.data
+            if student.email_address == StudentEmail:
+                if firstname is not None:
+                    student.firstname = firstname
+                if lastname is not None:
+                    student.lastname = lastname
+                if course_id is not None:
+                    student.course_id = course_id
+                if grade is not None:
+                    student.grades = grade
+                if marks is not None:
+                    student.marks = marks
+
+                self.save_student()
+                print(f"Student ID {StudentEmail} has been successfully updated")
+                return True
+            current = current.next
+
+        print("Error: Student not found. Please try again")
+        return False
+    
+    
 
 
