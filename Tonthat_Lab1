@@ -1,14 +1,34 @@
+import csv
+import shutil
+import os
+
+login_db={'sam@xyzemail.com':["welcome1","admin","Sam","Gilroy"],'peter@useremail.com':["welcome2","student","Peter","SanJose"]}
+
+
 class Student:
-    def __init__(self,firstname,lastname,email_address,courses, grades, marks):
+    def __init__(self,firstname,lastname,email_address,course_id, grade, mark):
         self.firstname = firstname
         self.lastname = lastname
         self.email_address = email_address
-        self.courses = []
-        self.grades = []
-        self.marks = []
+        self.course_id = course_id
+        self.grades = grade
+        self.marks = mark
     
-    def display_records(self):
+    def display_records(self): #displays student information
+        print("\nStudent Information")
+        print("----------------------")
+        print("First Name: " + self.firstname)
+        print("Last Name: " + self.lastname)
+        print("Email: " + self.email_address)
+        print("Course: " + self.course_id)
+        print("Grades: " + self.grades)
+        print("Marks: " + self.marks)
         pass
+
+    def to_dict(self):
+        return {
+            "email_address": self.email_address, "firstName": self.firstname, "lastName": self.lastname, "Course_ID": self.course_id, "Grades": self.grades, "Marks": self.marks
+        }
 
     def add_new_student(self):
         pass
@@ -19,7 +39,14 @@ class Student:
     def check_my_grades(self):
         pass
 
-    def update_student_record(self):
+    def update_student_record(self,firstname,lastname,email_address,course_id, grade, mark):
+        print("Updating Student " + firstname + " " +  lastname)
+        self.firstname = firstname
+        self.lastname = lastname
+        self.email_address = email_address
+        self.course_id = course_id
+        self.grades = grade
+        self.marks = mark
         pass
     
     def check_my_marks(self):
@@ -33,7 +60,17 @@ class Course:
         self.credits = credits
 
     def display_courses(self):
+        print("\nCourse Information")
+        print("----------------------")
+        print("Course ID: " + self.course_id)
+        print("Course Name: " + self.course_name)
+        print("Credits: " + self.credits)
         pass
+
+    def to_dict(self):
+        return {
+            "Course_Id": self.course_id, "Course_Name": self.course_name, "Credits": self.credits
+        }
 
     def add_new_course(self):
         pass
@@ -49,7 +86,18 @@ class Professor:
         self.course_id = course_id
 
     def professor_details(self):
+        print("\nProfessor Information")
+        print("----------------------")
+        print("Professor Email: " + self.email_address)
+        print("Professor Name: " + self.name)
+        print("Rank: " + self.rank)
+        print("Course ID: " + self.course_id)
         pass
+
+    def to_dict(self):
+        return {
+            "Professor_Email": self.email_address, "Professor_Name": self.name, "Professor_Rank": self.rank, "Course_ID": self.course_id
+        }
 
     def add_new_professor(self):
         pass
@@ -65,10 +113,24 @@ class Professor:
 
 class Grades:
     def __init__(self, grade_id, grade, marks):
+        self.grade_id = grade_id
+        self.grade = grade
+        self.marks = marks
         pass
 
     def display_grade_report(self):
+        print("\nGrade Information")
+        print("----------------------")
+        print("Grade ID: " + self.grade_id)
+        print("Grade: " + self.grade)
+        print("Marks: " + self.marks)
         pass
+
+    def to_dict(self):
+        return {
+            "Grade_ID": self.grade_id, "Grade": self.grade, "Marks": self.marks,
+        }
+
 
     def add_grade(self):
         pass
@@ -81,13 +143,20 @@ class Grades:
 
 class LoginUser:
     def __init__(self, email_id, password):
-        pass
+        self.email_id = email_id
+        self.password = password
     
     def login(self):
-        pass
-
+        """Check login detail"""
+        if self.email_id in login_db:
+                value=login_db[self.email_id]
+                if self.password == value[0]:
+                    return True,value[0],value[1],value[2],value[3]
+                else:
+                    return False,None,None,None,None
     def logout(self):
-        pass
+        """Logged out from the system"""
+        return "loggedout"
 
     def change_password(self):
         pass
@@ -96,3 +165,81 @@ class LoginUser:
         pass
     def decrypt_password(self):
         pass
+
+#main admin app to manage all records
+class CheckMyGrade:
+    def __init__(self):
+        self.students = []
+        self.professors = []
+        self.courses = []
+        self.logins = []
+
+    def create_csv(self, filename, headers):
+        if not os.path.exists(filename):
+            with open(filename, "w", newline="") as newfile:
+                writer = csv.DictWriter(newfile, fieldnames = headers)
+                writer.writeheader()
+            print("CSV Not Found. CSV created for " + filename  + " with the following headers: " + headers)   
+        else:
+            pass
+
+    def load_students(self):
+        #clear students list
+        students = []
+        #creates csv for students if .csv for students does not exist
+        self.create_csv('student',['first_name', 'last_name', 'email address', 'course_id', 'grade', 'marks'])
+        
+        #loads and reads students .csv line for line while adding to students list
+        with open ('students.csv', newline="") as studentscsv:
+            reader = csv.DictReader(studentscsv)
+            for row in reader:
+                students.append(Student(row['first_name'], row['last_name'], row['email_address'], row['course_id'], row['grade'], row['mark']))
+        
+        return students
+    
+    def load_courses(self):
+        #clear courses list
+        courses = []
+        #creates csv for courses if .csv for students does not exist
+        self.create_csv('course',['course_id', 'course_name', 'credits'])
+        #loads and reads students .csv line for line while adding to students list
+        with open ('course.csv', newline="") as coursescsv:
+            reader = csv.DictReader(coursescsv)
+            for row in reader:
+                courses.append(Course(row['course_id'], row['course_name'], row['credits']))
+        
+        return courses
+
+    def load_professors(self):
+        #clear courses list
+        professors = []
+        #creates csv for courses if .csv for students does not exist
+        self.create_csv('professor',['name', 'email_address', 'rank', 'course_id'])
+        #loads and reads students .csv line for line while adding to students list
+        with open ('course.csv', newline="") as professorscsv:
+            reader = csv.DictReader(professorscsv)
+            for row in reader:
+                professors.append(Professor(row['name'], row['email_address'], row['rank'], row['course_id']))
+        
+        return professors
+
+def mainmenu():
+    while True:
+        columns = shutil.get_terminal_size().columns
+        print("=================================".center(columns))
+        print("Welcome to CheckMyGrade App".center(columns))
+        print("================================".center(columns))
+        print("\nMain Menu:")
+        print("1. Login")
+        print("2. Signup")
+        print("3. Exit")
+        choice = input("Enter your choice: ")
+        if choice == '1':
+            pass
+        elif choice == '2':
+            pass
+        else: break
+
+
+if __name__ == "__main__":
+    mainmenu()
