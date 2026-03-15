@@ -116,7 +116,7 @@ class LinkedList:
             else:
                 c1 = self.head #previous Node
                 c2 = self.head.next #current Node
-                while c2.next is not None: #iterates through list
+                while c2 is not None: #iterates through list
                     c1 = c1.next #rewrites previous Node to current Node
                     c2 = c2.next #rewrites current Node to next Node
                 c1.next = None #at end of list, set last Node
@@ -262,7 +262,7 @@ class CheckMyGrade:
             with open(filename, "w", newline="") as newfile:
                 writer = csv.DictWriter(newfile, fieldnames = headers)
                 writer.writeheader()
-            print("CSV Not Found. CSV created for " + filename  + " with the following headers: " + headers)   
+            print("CSV Not Found. CSV created for ", filename, " with the following headers: ", headers)   
         else:
             pass
 
@@ -275,14 +275,14 @@ class CheckMyGrade:
         with open ('student.csv', newline="") as studentscsv:
             reader = csv.DictReader(studentscsv)
             for row in reader:
-                student = Student(row['first_name'], row['last_name'], row['email_address'], row['course_id'], row['grade'], row['mark'])
+                student = Student(row['email_address'], row['first_name'], row['last_name'], row['course_id'], row['grade'], row['mark'])
                 self.students.add_last(student)
     
     def load_courses(self):
         #clear courses list
         self.courses = LinkedList()
         #creates csv for courses if .csv for courses does not exist
-        self.create_csv('course',['course_id', 'course_name', 'credits'])
+        self.create_csv('course.csv',['course_id', 'course_name', 'credits'])
         #loads and reads courses .csv line for line while adding to courses list
         with open ('course.csv', newline="") as coursescsv:
             reader = csv.DictReader(coursescsv)
@@ -294,7 +294,7 @@ class CheckMyGrade:
         #clear professors list
         self.professors = LinkedList()
         #creates csv for professors if .csv for professors does not exist
-        self.create_csv('professor',['name', 'email_address', 'rank', 'course_id'])
+        self.create_csv('professor.csv',['name', 'email_address', 'rank', 'course_id'])
         #loads and reads professors .csv line for line while adding to professors list
         with open ('professor.csv', newline="") as professorscsv:
             reader = csv.DictReader(professorscsv)
@@ -306,7 +306,7 @@ class CheckMyGrade:
         #clear logins list
         self.logins = LinkedList()
         #creates csv for logins if .csv for logins does not exist
-        self.create_csv('login',['email_address', 'password'])
+        self.create_csv('login.csv',['email_address', 'password'])
         #loads and reads login .csv line for line while adding to logins list
         with open ('login.csv', newline="") as loginscsv:
             reader = csv.DictReader(loginscsv)
@@ -316,12 +316,14 @@ class CheckMyGrade:
                 self.logins.add_last(user)
     
     def save_student(self):
-        with open ('students.csv', 'w', newline="") as studentscsv:
+        #open csv and begin writing new rows
+        with open ('student.csv', 'w', newline="") as studentscsv:
             writer = csv.DictWriter(studentscsv, fieldnames = ['email_address', 'first_name', 'last_name', 'course_id', 'grade', 'mark'])
             writer.writeheader()
 
             c1 = self.students.head
             while c1 is not None:
+                #while next node is not empty, write student row
                 student = c1.data
                 writer.writerow({
                     'email_address': student.email_address,
@@ -340,6 +342,7 @@ class CheckMyGrade:
             
             c1 = self.courses.head
             while c1 is not None:
+                #while next node is not empty, write course row
                 course = c1.data
                 writer.writerow({
                     'course_id': course.course_id,
@@ -355,6 +358,7 @@ class CheckMyGrade:
             
             c1 = self.professors.head
             while c1 is not None:
+                #while next node is not empty, write professor row
                 professor = c1.data
                 writer.writerow({
                     'email_address': professor.email_address,
@@ -368,7 +372,7 @@ class CheckMyGrade:
         StudentEmail = email_address.strip().lower()
         c1 = self.students.head
 
-        while c1 is not None:
+        while c1 is not None: #iterate through LL --> return true if node's email matches passed variable email
             student = c1.data
             if student.email_address == StudentEmail:
                 return True
@@ -379,7 +383,7 @@ class CheckMyGrade:
         course_id = course_id.strip().lower()
         c1 = self.courses.head
 
-        while c1 is not None:
+        while c1 is not None: #iterate through LL --> return true if node's course_id matches passed variable email
             course = c1.data
             if course.course_id == course_id:
                 return True
@@ -390,32 +394,59 @@ class CheckMyGrade:
         ProfEmail = email_address.strip().lower()
         c1 = self.professors.head
 
-        while c1 is not None:
+        while c1 is not None: #iterate through LL --> return true if node's email matches passed variable email
             professor = c1.data
             if professor.email_address == ProfEmail:
                 return True
             c1 = c1.next
         return False
 
-    
+    def add_new_student(self, email_address, firstname, lastname, course_id, grade, marks):
+        if self.existing_student(email_address):
+            print ("Student already exists")
+            return
 
-def mainmenu():
-    while True:
-        columns = shutil.get_terminal_size().columns
-        print("=================================".center(columns))
-        print("Welcome to CheckMyGrade App".center(columns))
-        print("================================".center(columns))
-        print("\nMain Menu:")
-        print("1. Login")
-        print("2. Signup")
-        print("3. Exit")
-        choice = input("Enter your choice: ")
-        if choice == '1':
-            pass
-        elif choice == '2':
-            pass
-        else: break
+        student = Student(email_address, firstname, lastname, course_id, grade, marks)
+        self.students.add_last(student)
+        self.save_student()
+        print(f"Student ID {email_address} successfully added.")
+
+    def display_all_students(self):
+        if not self.students.check_head():
+            print("Error. No students found.")
+            return
+
+        c1 = self.students.head
+        while c1 is not None:
+            c1.data.display_records()
+            c1 = c1.next
+
+    def delete_student(self, email_address):
+        email_address = email_address.strip().lower()
+
+        if not self.students.check_head():
+            print("Error. No students found in list")    
+            return False
+        
+        elif self.students.head.data.email_address == email_address:
+            self.students.delete_first_node()
+            self.save_student()
+            print("Student deleted successfully")
+            return True
+
+        previous = self.students.head
+        current = self.students.head.next
+
+        while current is not None:
+            if current.data.email_address == email_address:
+                previous.next = current.next
+                self.save_student()
+                print("Student deleted successfully")
+                return True
+            previous = current
+            current = current.next
+
+        print("Error. Student not found.")
+        return False
 
 
-if __name__ == "__main__":
-    mainmenu()

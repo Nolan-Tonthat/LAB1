@@ -1,0 +1,22 @@
+import unittest
+from Tonthat_Lab1 import CheckMyGrade
+
+
+class TestStudents(unittest.TestCase):
+
+    def setUp(self):
+        self.app = CheckMyGrade()
+        self.app.students.head = None
+
+    def test_add_student(self):
+        self.app.add_new_student("a@email.com", "A", "Test", "CS101", "A", 90)
+        self.assertTrue(self.app.existing_student("a@email.com"))
+
+    def test_delete_student(self):
+        self.app.add_new_student("b@email.com", "B", "Test", "CS102", "B", 80)
+        self.app.delete_student("b@email.com")
+        self.assertFalse(self.app.existing_student("b@email.com"))
+
+
+if __name__ == "__main__":
+    unittest.main()
