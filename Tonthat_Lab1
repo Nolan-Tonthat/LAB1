@@ -212,30 +212,119 @@ class Grades:
     def modify_grade(self):
         pass
 
+#taken from encyc.py, given as part of Lab1
+class TextSecurity:
+    """This class with encrypt the test using Caesar cipher"""
+    def __init__(self, shift):
+        """COnstructor."""
+        self.shifter=shift
+        self.s=self.shifter%26
+  
+    def _convert(self, text,s):
+        """return encrypted string."""
+        result=""
+        for i,ch in enumerate(text):     
+             if (ch.isupper()):
+                  result += chr((ord(ch) + s-65) % 26 + 65)
+             else:
+                  result += chr((ord(ch) + s-97) % 26 + 97)
+        return  result
+  
+    def encrypt(self, text):
+        """return encrypted string."""
+        return self._convert(text,self.shifter)
+        
+    def decrypt(self, text):
+        """return encrypted string."""
+        return self._convert(text,26-self.s) 
+
 class LoginUser:
-    def __init__(self, email_id, password):
-        self.email_id = email_id
-        self.password = password
+    def __init__(self, filename = 'login.csv', shift = 3):
+        self.file = filename
+        self.security = TextSecurity(shift)
+        self.logindb = LinkedList()
+        self.create_login_file()
+
     
-    def login(self):
+    def create_login_file(self):
+        if not os.path.exists(self.file):
+            with open(self.file, 'w', newline = '') as readFile:
+                writer = csv.writer(readFile)
+                writer.writerow(['email', 'password', 'role'])
+
+    def load_login(self):
+        self.login_list.head = None
+        with open(self.file, 'r', newline = "") as readFile:
+            reader = csv.reader(readFile)
+            for row in reader:
+                self.logindb.add_last(row)
+
+    def save_login(self):
+        with open(self.file, 'w', newline="") as readFile:
+            writer = csv.writer(readFile)
+            writer.writerow(['email', 'password','role'])
+
+            current = self.logindb.head
+            while current is not None:
+                writer.writerow(current.data)
+                current = current.next
+
+    def user_exists(self, email):
+        current = self.logindb.head
+        while current is not None:
+            if current.data[0] == email:
+                return True
+            current = current.next
+        return False
+
+    def add_user(self, email, password, role):
+        if self.user_exists(email):
+            print("Error. User already exists with that email. Please try again.")
+            return False
+        
+        encrypted_password = self.security.encrypt(password)
+
+        with open(self.file, 'a', newline="") as readFile:
+            writer = csv.writer(readFile)
+            writer.writerow([email, encrypted_password, role])
+
+        print("User ", email, " added successfully.")
+        return True
+
+    def login(self, email, password):
         """Check login detail"""
-        if self.email_id in login_db:
-                value=login_db[self.email_id]
-                if self.password == value[0]:
-                    return True,value[0],value[1],value[2],value[3]
+        encrypted_password = self.security.encrypt(password)
+
+        with open(self.file, 'r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                if row[0] == email and row[1] == encrypted_password:
+                    print("Login successful for ", row[0])
+                    print("Role: ", row[2])
+                    return True
+                
+        print("Invalid email or password")
+        return False
+
+    def change_password(self, email, old_password, new_password):
+        current = self.login_list.head
+        old_encrypted_pw = self.security.encrypt(old_password)
+        new_encrypted_pw = self.security.encrypt(new_password)
+
+        while current is not None:
+            if current.data[0] == email:
+                if current.data[1] == old_encrypted_pw:
+                    current.data[1] == new_encrypted_pw
+                    self.save_login()
+                    print("Password changed successfully.")
+                    return True
                 else:
-                    return False,None,None,None,None
-    def logout(self):
-        """Logged out from the system"""
-        return "loggedout"
+                    print("Old password is incorrect.")
+                    return False
+            current = current.next
 
-    def change_password(self):
-        pass
-
-    def encrypt_password(self):
-        pass
-    def decrypt_password(self):
-        pass
+        print("User not found.")
+        return False
 
 #main admin app to manage all records
 class CheckMyGrade:
@@ -289,19 +378,6 @@ class CheckMyGrade:
             for row in reader:
                 professor = Professor(row['email_address'], row['name'], row['rank'], row['course_id'])
                 self.professors.add_last(professor)
-    
-    def load_logins(self):
-        #clear logins list
-        self.logins = LinkedList()
-        #creates csv for logins if .csv for logins does not exist
-        self.create_csv('login.csv',['email_address', 'password'])
-        #loads and reads login .csv line for line while adding to logins list
-        with open ('login.csv', newline="") as loginscsv:
-            reader = csv.DictReader(loginscsv)
-            for row in reader:
-                #LoginUser only initialized in main; no need to initialize class now
-                user = LoginUser(row["email_address"], row["password"])
-                self.logins.add_last(user)
     
     def save_student(self):
         #open csv and begin writing new rows
