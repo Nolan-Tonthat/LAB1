@@ -1,6 +1,7 @@
 import csv
 import os
 import unittest
+import statistics
 
 login_db={'sam@xyzemail.com':["welcome1","admin","Sam","Gilroy"],'peter@useremail.com':["welcome2","student","Peter","SanJose"]}
 
@@ -253,7 +254,7 @@ class LoginUser:
                 writer.writerow(['email', 'password', 'role'])
 
     def load_login(self):
-        self.login_list.head = None
+        self.logindb.head = None
         with open(self.file, 'r', newline = "") as readFile:
             reader = csv.reader(readFile)
             for row in reader:
@@ -307,14 +308,14 @@ class LoginUser:
         return False
 
     def change_password(self, email, old_password, new_password):
-        current = self.login_list.head
+        current = self.logindb.head
         old_encrypted_pw = self.security.encrypt(old_password)
         new_encrypted_pw = self.security.encrypt(new_password)
 
         while current is not None:
             if current.data[0] == email:
                 if current.data[1] == old_encrypted_pw:
-                    current.data[1] == new_encrypted_pw
+                    current.data[1] = new_encrypted_pw
                     self.save_login()
                     print("Password changed successfully.")
                     return True
@@ -626,10 +627,15 @@ class CheckMyGrade:
         print("Error. Professor not found.")
         return False
 
+
+    #function to update student record similar to updating course and professors
     def update_student_record(self, email_address, firstname = None, lastname = None, course_id = None, grade = None, marks = None):
         StudentEmail = email_address.strip().lower()
+        
+        #set current node to start of linked list
         current = self.students.head
-
+        
+        #check for if node is correct student; if so, check node and make changes as needed
         while current is not None:
             student = current.data
             if student.email_address == StudentEmail:
@@ -644,6 +650,7 @@ class CheckMyGrade:
                 if marks is not None:
                     student.marks = marks
 
+                #save linked list along with .csv
                 self.save_student()
                 print(f"Student ID {StudentEmail} has been successfully updated")
                 return True
@@ -656,6 +663,8 @@ class CheckMyGrade:
         CourseToMod = course_id.strip().upper()
         current = self.courses.head
 
+
+        #check if node is correct course; if so, check node and make changes as needed
         while current is not None:
             course = current.data
             if course.course_id == CourseToMod:
@@ -675,7 +684,8 @@ class CheckMyGrade:
     def modify_professor(self, email_address, name = None, rank = None, course_id = None):
         ProfToMod = email_address.strip().lower()
         current = self.professors.head
-
+        
+        #check if node is the correct professor; if so, check through node and make changes as needed
         while current is not None:
             professor = current.data
             if professor.email_address == ProfToMod:
@@ -694,5 +704,116 @@ class CheckMyGrade:
         print("Error: Professor not found. Please try again")
         return False
 
+    def course_averages(self, course_id):
+        course_id = course_id.strip().upper()
+        list_mark = []
+
+        #turn marks from linked list and adds to new list_mark
+        current = self.students.head
+        while current is not None:
+            student = current.data
+            if student.course_id == course_id:
+                list_mark.append(float(student.marks)) #turn marks to float to avoid ValueError
+
+            current = current.next
+
+        #calculation for average
+        if len(list_mark) == 0:
+            return None
+        return sum(list_mark) / len(list_mark)
+    
+    def course_median(self, course_id):
+        course_id = course_id.strip().upper()
+        list_mark = []
+
+        current = self.students.head
+        while current is not None:
+            student = current.data
+            if student.course_id == course_id:
+                list_mark.append(float(student.marks))
+
+            current = current.next
+        
+        #calculation for median. uses imported statistics module
+        if len(list_mark) == 0:
+            return None
+        return statistics.median(list_mark)
+    
+
+    def search_student_by_email(self,email_address):
+        StudentEmail = email_address.strip().lower()
+
+        #iterates through linked list, returns student if there is matching emails
+        current = self.students.head
+        while current is not None:
+            student = current.data
+            if student.email_address == StudentEmail:
+                return student
+            
+            current = current.next
+
+        return None
+
+    def search_student_by_course(self, course_id):
+        course_id = course_id.strip().upper()
+        results = []
+
+        #iterates through linked list, returns all students that have matching course-ids (means they are attending the course and have grades/marks)
+        current = self.students.head
+        while current is not None:
+            student = current.data
+            if student.course_id == course_id:
+                results.append(student)
+            current = current.next
+        return results
 
 
+    def sort_students(self, way, descending = False):
+        students_list = self.students.to_list() #convert students linked list to list
+        
+        #use lambda function for easy iteration through list of students.
+        if way == "lastname":
+            students_list.sort(key = lambda x: x.lastname, reverse = descending) #sorts student list by lastname, descending variable used to reverse sort
+        elif way == "grade":
+            students_list.sort(key = lambda x: x.grades, reverse = descending) #sorts student list by grade, descending variable used to reverse sort
+        else:
+            print("Error. Please enter a different sort field")
+            return []
+        
+        return students_list
+    
+    def report_student(self, email_address): #report of specific student
+        student = self.search_student_by_email(email_address)
+        if student is None:
+            print("Error. Student Not Found")
+            return
+        student.display_records() #once student is found, display their records
+
+    def report_course(self,course_id):
+        students = self.search_student_by_course(course_id)
+        if len(students) == 0:
+            print("No students found for this course")
+            return
+        
+        print("Course Report")
+        for student in students: #create list of all students that attend the course
+            print(student)
+
+        avg = self.course_averages(course_id) 
+        med = self.course_median(course_id)
+        print("Average Marks: ", avg) #display average and median marks of course
+        print("Median Marks: ", med) 
+
+    def report_professor(self, emaiL_address):
+        ProfEmail = emaiL_address.strip().lower()
+        current = self.professors.head
+
+        while current is not None:
+            professor = current.data
+            if professor.email_address == ProfEmail:
+                professor.professor_details()
+                self.report_course(professor.course_id) #display report of professor along with course + students attending course
+                return
+        current = current.next
+
+        print("Error. Professor not Found")
