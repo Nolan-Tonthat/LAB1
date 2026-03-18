@@ -2,8 +2,7 @@ import csv
 import os
 import unittest
 import statistics
-
-login_db={'sam@xyzemail.com':["welcome1","admin","Sam","Gilroy"],'peter@useremail.com':["welcome2","student","Peter","SanJose"]}
+import time
 
 #node class for LinkedList implementation
 class Node:
@@ -80,7 +79,7 @@ class LinkedList:
             else: #iterates through linked list nodes to find matching node to delete
                 c1 = self.head #previous Node
                 c2 = self.head.next #current Node
-                while c2.next is not None: #iterates through list
+                while c2 is not None: #iterates through list
                     if c2.data == data:
                         c1.next = c2.next #'removes' Node by overwriting address
                         flag=True
@@ -88,10 +87,8 @@ class LinkedList:
                     c2=c2.next
         else:
             print("List is empty")
-            
         if not flag:
             print("No data element found in ll")
-        pass
 
     def delete_first_node(self):
         """ delete the linked linked list first node"""
@@ -101,10 +98,8 @@ class LinkedList:
             flag = True
         else:
             print("List is empty")
-        
         if not flag:
             print("No data element found in ll")
-        pass
       
     def delete_last_node(self):
         """ delete the linked linked list last node"""
@@ -126,7 +121,17 @@ class LinkedList:
             print("List is empty")
         if not flag:
             print("No data element found in ll")
-        pass
+   
+    #function to swap linkedlist back to regular list
+    def to_list(self):
+        nodes = []
+        current = self.head
+        while current is not None:
+            nodes.append(current.data)
+            current = current.next
+        return nodes
+
+
 
 class Student:
     def __init__(self,email_address,firstname,lastname,course_id, grades, marks):
@@ -289,6 +294,8 @@ class LoginUser:
             writer = csv.writer(readFile)
             writer.writerow([email, encrypted_password, role])
 
+        self.logindb.add_last([email, encrypted_password, role])
+
         print("User ", email, " added successfully.")
         return True
 
@@ -302,10 +309,10 @@ class LoginUser:
                 if row[0] == email and row[1] == encrypted_password:
                     print("Login successful for ", row[0])
                     print("Role: ", row[2])
-                    return True
+                    return row[2]
                 
         print("Invalid email or password")
-        return False
+        return None
 
     def change_password(self, email, old_password, new_password):
         current = self.logindb.head
@@ -348,7 +355,7 @@ class CheckMyGrade:
         #clear students list
         self.students = LinkedList()
         #creates csv for students if .csv for students does not exist
-        self.create_csv('student.csv',['email address','first_name', 'last_name', 'course_id', 'grades', 'marks'])
+        self.create_csv('student.csv',['email_address','first_name', 'last_name', 'course_id', 'grades', 'marks'])
         #loads and reads students .csv line for line while adding to students list
         with open ('student.csv', newline="") as studentscsv:
             reader = csv.DictReader(studentscsv)
@@ -383,7 +390,7 @@ class CheckMyGrade:
     def save_student(self):
         #open csv and begin writing new rows
         with open ('student.csv', 'w', newline="") as studentscsv:
-            writer = csv.DictWriter(studentscsv, fieldnames = ['email_address', 'first_name', 'last_name', 'course_id', 'grade', 'marks'])
+            writer = csv.DictWriter(studentscsv, fieldnames = ['email_address', 'first_name', 'last_name', 'course_id', 'grades', 'marks'])
             writer.writeheader()
 
             c1 = self.students.head
@@ -395,7 +402,7 @@ class CheckMyGrade:
                     'first_name': student.firstname,
                     'last_name': student.lastname,
                     'course_id': student.course_id,
-                    'grade': student.grades,
+                    'grades': student.grades,
                     'marks': student.marks
                 })
                 c1 = c1.next
@@ -771,6 +778,8 @@ class CheckMyGrade:
     def sort_students(self, way, descending = False):
         students_list = self.students.to_list() #convert students linked list to list
         
+        start_time = time.perf_counter()
+
         #use lambda function for easy iteration through list of students.
         if way == "lastname":
             students_list.sort(key = lambda x: x.lastname, reverse = descending) #sorts student list by lastname, descending variable used to reverse sort
@@ -780,6 +789,10 @@ class CheckMyGrade:
             print("Error. Please enter a different sort field")
             return []
         
+        end_time = time.perf_counter()
+        total_time_taken = end_time - start_time
+
+        print(f"Sorting completed in {total_time_taken}")
         return students_list
     
     def report_student(self, email_address): #report of specific student
@@ -814,6 +827,330 @@ class CheckMyGrade:
                 professor.professor_details()
                 self.report_course(professor.course_id) #display report of professor along with course + students attending course
                 return
-        current = current.next
+            current = current.next
 
         print("Error. Professor not Found")
+
+class appUI:
+    def __init__(self):
+       
+        #initialize CheckMyGrade app + login handler
+        self.app = CheckMyGrade()
+        self.login = LoginUser()
+
+        #load datasets
+        self.app.load_courses()
+        self.app.load_professors()
+        self.app.load_students()
+        self.login.load_login()
+
+    #check-in menu to choose between professor and student menu
+    def check_user(self):
+        while True:
+            print("\nWelcome to CheckMyGrade")
+            print("1. Login")
+            print("2. Create New User")
+            print("3. Exit")
+
+            user_choice = input("Enter choice:  ").strip()
+
+            if user_choice == "1":
+                self.login_menu()
+            elif user_choice == "2":
+                self.create_new_login()
+            elif user_choice == "3":
+                print("Exiting...")
+                break
+            else:
+                print("Error. Invalid choice. Please choose a valid option (1-3)")
+    
+    def create_new_login(self):
+        #ask for user input and check for user
+        print("\nAdding New User")
+        email = input("Enter User Email:  ").strip().lower()
+        password = input("Enter User Password:  ").strip()
+        role = input("Choose a role (professor / student):  ").strip().lower()
+
+        if role != "professor" and role != "student":
+            print ("Error. Invalid role. Please enter a valid role")
+            return
+        
+        self.login.add_user(email, password, role)
+
+    #login menu
+    def login_menu(self):
+        print("\n Login Menu")
+        email = input("Enter User Email:  ").strip().lower()
+        password = input("Enter User Password:  ").strip()
+
+        role = self.login.login(email, password)
+
+        if role == "professor":
+            self.professor_menu()
+        elif role == "student":
+            self.student_menu(email)
+        else:
+            print("Error. Login Failed. Please try again.")
+            return
+        
+    #professor menu 
+    def professor_menu(self):
+        while True:
+            print("\n Professor Menu")
+            print("1. Add record")
+            print("2. Display record")
+            print("3. Delete record")
+            print("4. Update Record")
+            print("5. Search Students by Email")
+            print("6. Search Students by Course")
+            print("7. Sort Students")
+            print("8. Course Report")
+            print("9. Student Report")
+            print("10. Professor Report")
+            print("11. Change Password")
+            print("12. Logout")
+
+            user_choice = input("Please make your choice:   ").strip()
+
+            #adding new data menu
+            if user_choice == "1":
+                print("\n1. Add Student")
+                print("2. Add Course")
+                print("3. Add Professor")
+
+                add_choice = input("Enter choice:  ").strip()
+
+                if add_choice == "1":
+                    self.add_student()
+                elif add_choice == "2":
+                    self.add_course()
+                elif add_choice == "3":
+                    self.add_professor()
+                else:
+                    print("Error. Please input a valid choice.")
+                    return
+    
+            #display records menu
+            elif user_choice == "2":
+                print("\n1. Display Students")
+                print("2. Display Courses")
+                print("3. Display Professors")
+                display_choice = input("Enter choice:  ").strip()
+
+                if display_choice == "1":
+                    self.app.display_all_students()
+                elif display_choice == "2":
+                    self.app.display_all_courses()
+                elif display_choice == "3":
+                    self.app.display_all_professors()
+                else:
+                    print("Error. Please input a valid choice.")
+                    return
+    
+            #deleting records menu
+            elif user_choice == "3":
+                print("\n1. Delete Student")
+                print("2. Delete Course")
+                print("3. Delete Professor")
+                delete_choice = input("Enter choice:  ").strip()
+
+                if delete_choice == "1":
+                    user_input = input("Enter student email to delete:  ").strip().lower()
+                    self.app.delete_student(user_input)
+                elif delete_choice == "2":
+                    user_input = input("Enter course ID to delete:  ").strip().upper()
+                    self.app.delete_course(user_input)
+                elif delete_choice == "3":
+                    user_input = input("Enter professor email to delete:  ").strip().lower()
+                    self.app.delete_professor(user_input)
+                else:
+                    print("Error. Please input a valid choice.")
+                    return
+                
+            #updating records menu
+            elif user_choice == "4":
+                print("\n1. Update Student")
+                print("2. Update Course")
+                print("3. Update Professor")
+                update_choice = input("Enter choice:  ").strip()
+
+                if update_choice == "1":
+                    self.update_student()
+                elif update_choice == "2":
+                    self.update_course()
+                elif update_choice == "3":
+                    self.update_professor()
+                else:
+                    print("Error. Please input a valid choice.")
+                    return
+            
+            #searching students by email menu
+            elif user_choice == "5":
+                email = input("\nPlease enter the student's email:  ").strip().lower()
+                student = self.app.search_student_by_email(email)
+                if student:
+                    student.display_records()
+                else:
+                    print("Error. Student Not Found.")
+            #searching students by course menu
+            elif user_choice == "6":
+                course_id = input("\nPlease enter the course ID:  ").strip().upper()
+                course_list = self.app.search_student_by_course(course_id)
+                if len(course_list) == 0:
+                    print("Error. No Students Found")
+                else:
+                    for student in course_list:
+                        print(student)
+            #sorting students menu
+            elif user_choice == "7":
+                self.sort_students()
+            #course report menu
+            elif user_choice == "8":
+                course_id = input("\nPlease enter the course ID:  ").strip().upper()
+                self.app.report_course(course_id)
+            #student report menu
+            elif user_choice == "9":
+                email = input("\nPlease enter the student's email:  ").strip().lower()
+                self.app.report_student(email)
+            #professor report menu
+            elif user_choice == "10":
+                email = input("\nPlease enter the professor's email:  ").strip().lower()
+                self.app.report_professor(email)
+            #change password menu
+            elif user_choice == "11":
+                self.change_password()
+            #logout function
+            elif user_choice == "12":
+                print("Logging out...")
+                break
+            else: 
+                print("Error. Please input a valid choice.")
+                return 
+                
+    #student menu
+    def student_menu(self, email):
+        while True:
+            print("\nStudent Menu")
+            print("1. View My Record")
+            print("2. Change Password")
+            print("3. Logout")
+
+            user_choice = input("Please make your choice:   ").strip()
+            
+            #student report
+            if user_choice == "1":
+                self.app.report_student(email)
+            #change password
+            elif user_choice == "2":
+                self.change_password()
+            #logout function
+            elif user_choice == "3":
+                print("Logging out...")
+                break
+            else: 
+                print("Error. Please input a valid choice.")
+                return 
+
+    #user input to add new student
+    def add_student(self):
+        print("\nEnter Student Details")
+        email = input("Email:  ").strip().lower()
+        firstname = input("FIrst Name:  ").strip()
+        lastname = input("Last Name:  ").strip()
+        course_id = input("Course ID:  ").strip().upper()
+        grade = input("Grade:  ").strip().upper()
+        marks = input ("Marks:  ").strip()
+
+        self.app.add_new_student(email, firstname, lastname, course_id, grade, marks)
+
+    #user input to add new course
+    def add_course(self):
+        print("\nEnter Course Details")
+        course_id = input("Course ID:  ").strip().upper()
+        course_name = input("Course Name:  ").strip()
+        credits = input("Credits:  ").strip()
+
+        self.app.add_new_course(course_id, course_name, credits)
+
+    #user input to add new professor
+    def add_professor(self):
+        print("\nEnter Professor Details")
+        email = input("Professor email:  ").strip().lower()
+        name = input("Professor Name:  ").strip()
+        rank = input("Rank:  ").strip()
+        course_id = input("Course ID:  ").strip().upper()
+
+        self.app.add_new_professor(email, name, rank, course_id)
+
+    #user input to update student
+    def update_student(self):
+        print("\nUpdate Student Details")
+        email = input("Email:  ").strip().lower()
+        firstname = input("First Name (Press enter to skip):  ").strip()
+        lastname = input("Last Name (Press enter to skip):  ").strip()
+        course_id = input("Course ID (Press enter to skip):  ").strip().upper()
+        grade = input("Grade (Press enter to skip):  ").strip().upper()
+        marks = input ("Marks (Press enter to skip):  ").strip()
+
+        #passes user input; "" is replaced with None so function knows to skip
+        self.app.update_student_record(email, firstname if firstname != "" else None, lastname if lastname != "" else None, course_id if course_id != "" else None, grade if grade != "" else None, marks if marks != "" else None)
+        
+    #user input to update course
+    def update_course(self):
+        print("\nUpdate Course Details")
+        course_id = input("Course ID:  ").strip().upper()
+        course_name = input("Course Name (Press Enter to Skip):  ").strip()
+        credits = input("Credits (Press Enter to Skip):  ").strip()
+
+        #passes user input; "" is replaced with None so function knows to skip
+        self.app.modify_course(course_id, course_name if course_name != "" else None, credits if credits != "" else None)
+
+    #user input to update professor
+    def update_professor(self):
+        print("\nUpdate Professor Details")
+        email = input("Email:  ").strip().lower()
+        name = input("First Name (Press enter to skip):  ").strip()
+        rank = input("Last Name (Press enter to skip):  ").strip()
+        course_id = input("Course ID (Press enter to skip):  ").strip().upper()
+
+        #passes user input; "" is replaced with None so function knows to skip
+        self.app.modify_professor(email, name if name != "" else None, rank if rank != "" else None, course_id if course_id != "" else None)
+        
+    #user input to sort students
+    def sort_students(self):
+        print("\n Sort Students by:")
+        print("1. Sort by Last Name")
+        print("2. Sort by Grade")
+        sort_by = input("Enter your choice;  ").strip()
+
+        is_descending = input ("Descending order? (Y/N):  ").strip().upper()
+        
+        if is_descending == "Y":
+            descending_choice = True
+        else: descending_choice = False
+
+        if sort_by == "1":
+            sorted = self.app.sort_students("lastname", descending_choice)
+        elif sort_by == "2":
+            sorted = self.app.sort_students("grade", descending_choice)
+        else:
+            print("Error. Invalid choice. Please input a valid choice.")
+            return
+        
+        for student in sorted:
+            print(student)
+
+    #user input to change password
+    def change_password(self):
+        print("\n Changing Password")
+        email = input("Email:  ").strip().lower()
+        old_pw = input("Old password:  ").strip()
+        new_pw = input("New password:  ").strip()
+        self.login.change_password(email, old_pw, new_pw)
+
+if __name__ == "__main__":
+    ui = appUI()
+    ui.check_user()
+    
+
+

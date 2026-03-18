@@ -1,1 +1,2 @@
-email_address,first_name,last_name,course_id,grade,marks
+email_address,first_name,last_name,course_id,grades,marks
+test@email.com,New,Name,CS101,B,95

@@ -13,6 +13,27 @@ class TestStudents(unittest.TestCase):
         self.app.delete_student("b@email.com")
         self.assertFalse(self.app.existing_student("b@email.com"))
 
+    def test_add_1000_students(self):
+        for i in range(1000):
+            self.app.add_new_student(f"student{i}@email.com", f"First{i}", f"Last{i}","CS101","A","90" )
+
+        count = 0
+        current = self.app.students.head
+        while current is not None:
+            count += 1
+            current = current.next
+
+        self.assertEqual(count, 1000)
+
+    def test_modify_student(self):
+        self.app.add_new_student("test@email.com", "Old", "Name", "CS101", "B", "80")
+        result = self.app.update_student_record("test@email.com", firstname="New", marks="95")
+        self.assertTrue(result)
+
+        student = self.app.search_student_by_email("test@email.com")
+        self.assertEqual(student.firstname, "New")
+        self.assertEqual(student.marks, "95")
+
     def test_add_course(self):
         self.app.add_new_course("DATA200", "Programming", 3)
         self.assertTrue(self.app.existing_course("DATA200"))
@@ -21,6 +42,11 @@ class TestStudents(unittest.TestCase):
         self.app.add_new_course("DATA201", "Math for DI", 2)
         self.app.delete_course("DATA201")
         self.assertFalse(self.app.existing_course("DATA201"))
+
+    def test_modify_course(self):
+        self.app.add_new_course("DATA300", "Old Course", "3")
+        result = self.app.modify_course("DATA300", course_name="New Course", credits="4")
+        self.assertTrue(result)
 
 class TestProfessors(unittest.TestCase):
 
@@ -31,7 +57,7 @@ class TestProfessors(unittest.TestCase):
     def test_add_professor(self):
         result = self.app.add_new_professor("prof@email.com", "John Smith", "Senior Professor", "DATA200")
         self.assertTrue(result)
-        self.assertTrue(self.app.exisiting_professor("prof@email.com"))
+        self.assertTrue(self.app.existing_professor("prof@email.com"))
 
     def test_add_empty_email_professor(self):
         result = self.app.add_new_professor("", "John Smith", "Senior Professor", "DATA200")
@@ -66,5 +92,6 @@ class TestProfessors(unittest.TestCase):
                 self.assertEqual(current.data.name, "Green Giant")
                 break
             current = current.next
+
 if __name__ == "__main__":
     unittest.main()
