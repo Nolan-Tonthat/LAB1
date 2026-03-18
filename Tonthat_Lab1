@@ -208,16 +208,6 @@ class Grades:
     def __str__(self):
         return f"{self.grade_id} | {self.grade} | {self.marks}"
 
-
-    def add_grade(self):
-        pass
-
-    def delete_grade(self):
-        pass
-
-    def modify_grade(self):
-        pass
-
 #taken from encyc.py, given as part of Lab1
 class TextSecurity:
     """This class with encrypt the test using Caesar cipher"""
